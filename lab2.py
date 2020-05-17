@@ -1,42 +1,41 @@
-import math
 import matplotlib
-
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import math
 
-T0 = 30  # End temperature
-delta_t = 1  # Time interval
-r = .12
-n = 2
-m = 100
-
-T = {}
-t = {}
-
-T[0] = 100  # Start temperature
-t[0] = 0
-
+T = {}  # euler
+Trk = {}  # runge-kutta
+tm = []  # timer
+accuracy = math.exp(1e-5)
+t_environment = 30
+t_begin = 100
+T[0] = Trk[0] = t_begin
+tm.append(0)
+r = 0.12
+dt = 5
 i = 0
 
-# Euler Method
-while 1:
-    T[i + 1] = T[i] - r * (T[i] - T0) * delta_t
-    t[i + 1] = t[i] + delta_t
-    print(T[i + 1] - T[i])
-
-    if math.fabs(T[i + 1] - T[i]) <= 0.05:
+while T[i] >= t_environment:
+    # Runge kutta
+    k1 = r * (Trk[i] - t_environment)
+    k2 = r * ((Trk[i] - t_environment) + k1 * dt / 2)
+    k3 = r * ((Trk[i] - t_environment) + k2 * dt / 2)
+    k4 = r * ((Trk[i] - t_environment) + k3 * dt)
+    Trk[i + 1] = Trk[i] - (k1 + 2 * k2 + 2 * k3 + k4) * dt /6
+    # Euler
+    T[i + 1] = T[i] - r * dt * (T[i] - t_environment)
+    tm.append(tm[i] + dt)
+    if math.fabs(T[i + 1] - T[i]) <= 1e-5:
         break
+    print(T[i])
     i += 1
 
-T1 = [0 for i in range(len(T))]
-t1 = [0 for i in range(len(t))]
-
-for i in range(0, len(T)):
-    T1[i] = T[i]
-    t1[i] = t[i]
-
-plt.plot(t1, T1, "-")
-plt.xlabel("Time")
-plt.ylabel("Temperatue")
-plt.title("Approximate solution for coffee problem")
+print('Points: ', i)
+plt.subplot()
+plt.plot(tm, list(Trk.values()), 'g-.', tm, list(T.values()), 'r--')
+plt.xlabel('time, min')
+plt.ylabel('T,K')
+plt.title('Cup cooling(Euler&Runge-kutta methods)')
+plt.grid(True)
+plt.legend(['Runge-Kutta', 'Euler'])
 plt.show()
